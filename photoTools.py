@@ -109,11 +109,6 @@ def getIndexUpdatedName(_oldImagePath, _newIndex, _altLetter=''):
     return imageBaseName(_oldImagePath) + getFormattedIndex(_newIndex) + _altLetter + extension
 
 
-#def getPadUpdatedName(_oldImagePath, _altLetter=''):
-#    extension = os.path.splitext(_oldImagePath)[1]
-#    return _oldImagePath[:-1*len(extension)] + PADDING_SUFFIX + _altLetter + extension
-
-
 #Ensures that the requested directory exists, and exits if it cannot exist for some reason.
 #
 #Parameters: String
@@ -136,7 +131,6 @@ def informUser(_oldDirectory, _newDirectory):
     numNewFiles = len(glob.glob(_newDirectory+'*'))
     print("%d files in %s have been copied over to %d files in %s" % (numOldFiles, _oldDirectory, numNewFiles, _newDirectory))
     return
-
 
 
 def main():
@@ -185,12 +179,15 @@ def main():
                 imObj = Image.open(image)
                 oldX,oldY = imObj.size
 
+                print(oldX,oldY)
                 #Figure out how much extra should be added to each of the four sides
                 if oldX > oldY: yAdditive = (oldX - oldY)/2.0
                 elif oldY > oldX: xAdditive = (oldY - oldX)/2.0
 
                 #Image.crop() will add black boxes if the values are negative.
                 imObj = imObj.crop((0 - xAdditive, 0 - yAdditive, oldX + xAdditive, oldY + yAdditive))
+
+                if oldY > oldX: imObj = imObj.rotate(45)
                 imObj.save(NEW_IMAGE_DIR + os.path.basename(image))
 
             informUser(OLD_IMAGE_DIR, NEW_IMAGE_DIR)
