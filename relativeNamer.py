@@ -1,5 +1,7 @@
 #Written by Chris Keeler, 2019
 
+#Should be run as "python relativeNamer.py <pathToInputDirectory>/"
+
 """
 Descriptive overview
 
