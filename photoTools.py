@@ -176,7 +176,6 @@ def main():
             print("Padding files from %s and putting them in %s" % (OLD_IMAGE_DIR, NEW_IMAGE_DIR))
             ensureDir(NEW_IMAGE_DIR)
 
-            index = 1
             for image in imagePaths:
                 yAdditive = xAdditive = 0
                 imObj = Image.open(image)
@@ -187,16 +186,10 @@ def main():
                 if oldX > oldY: yAdditive = int((oldX - oldY)/2.0)
                 elif oldY > oldX: xAdditive = int((oldY - oldX)/2.0)
 
+                #Create a new, larger image with the requested padding colour, and then paste the original image overtop in the correct position
                 newCanvas = Image.new("RGB", (bigger,bigger), PADDING_COLOUR)
-
                 newCanvas.paste(imObj, (xAdditive, yAdditive))
-
                 newCanvas.save(NEW_IMAGE_DIR + os.path.basename(image))
-
-                #Image.crop() will add black boxes if the values are negative.
-#                imObj = imObj.crop((0 - xAdditive, 0 - yAdditive, oldX + xAdditive, oldY + yAdditive))
-
-                #imObj.save(NEW_IMAGE_DIR + os.path.basename(image))
 
             informUser(OLD_IMAGE_DIR, NEW_IMAGE_DIR)
 
