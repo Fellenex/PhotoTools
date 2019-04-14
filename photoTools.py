@@ -1,27 +1,14 @@
 #Written by Chris Keeler, 2019
+#Should be run as "python photoTools.py <pathToInputDirectory> {rename, pad, neg}"
+    #Choosing rename will allow you to reindex properly ordered but non-sequential file names
+    #Choosing pad will make each image square by padding the shorter sides
+    #Choosing neg will invert each image's colour
 
-#Should be run as "python photoTools.py <pathToInputDirectory> {rename, pad}"
+#Current limitations:
+    #Only operates on .JPGs
+    #Only operates on RGB images
+    #Padding does not leave images properly rotated
 
-"""
-Renaming:
-    Problem:
-    When digitizing film negatives, the resulting image files are not properly indexed.
-    This happens for two reasons:
-        1. Multiple reels are scanned at the same time, so subsequent reels start above 1
-        2. Multiple scans are made of the same negative, so subsequent negatives start beyond where they normally would.
-
-    Solution:
-    For each file within a folder:
-        for each photo
-            Create new name (use current conventions but with fixing indices)
-            save renamed image in relative folder
-
-Padding:
-    Problem:
-        When uploading to Instagram, they only accept square photos
-    Solution:
-        Add black borders to the shorter sides of the image to make all dimensions equal
-"""
 
 import glob
 import os
@@ -77,7 +64,6 @@ def alternativeTake(_imagePath):
 #Return value: String
 def getFormattedIndex(_index):
     return "0" * (INDEX_LENGTH - len(str(_index))) + str(_index)
-
 
 
 #Takes an image file path and removes indices and alternative flags
@@ -216,7 +202,7 @@ def main():
 
             informUser(OLD_IMAGE_DIR, NEW_IMAGE_DIR)
 
-        else: assertion(False) #should never get here
+        else: assert(False) #should never get here
 
     else:
         print("You haven't supplied a proper command argument.")
