@@ -63,10 +63,10 @@ def alternativeTake(_imagePath):
 
 #Takes a number and pads it with a sufficient number of prefixing '0's
 #
-#Parmeters: String
+#Parameters: String
 #Return value: String
 def getFormattedIndex(_index):
-    return "0"*(INDEX_LENGTH - len(str(_index)))+str(_index)
+    return "0" * (INDEX_LENGTH - len(str(_index))) + str(_index)
 
 
 
