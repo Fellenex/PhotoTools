@@ -28,12 +28,16 @@ import os
 import sys
 import shutil
 from PIL import Image
+import PIL.ImageOps
 
 IMAGE_SUFFIX_REGEX = "*.JPG"
 RENAMING_SUFFIX = "_(relative)/"
 PADDING_SUFFIX = "_(padded)/"
+NEGATIVE_SUFFIX = "_(negative)/"
 MAX_FILES = 9999
 INDEX_LENGTH = 4
+
+VALID_COMMANDS = ["rename", "pad", "neg"]
 
 
 #Takes a directory name and returns all of the image files contained within.
@@ -139,7 +143,7 @@ def main():
     if not (OLD_IMAGE_DIR[-1] == '/'):
         OLD_IMAGE_DIR += '/' #add a trailing slash if there wasn't one.
 
-    if sys.argv[2] in ["rename", "pad"]:
+    if sys.argv[2] in VALID_COMMANDS:
         #Get the files to be renamed
         imagePaths = getFolderImages(OLD_IMAGE_DIR)
         assert(len(imagePaths) < MAX_FILES)
@@ -190,6 +194,19 @@ def main():
                 newCanvas = Image.new("RGB", (bigger,bigger), PADDING_COLOUR)
                 newCanvas.paste(imObj, (xAdditive, yAdditive))
                 newCanvas.save(NEW_IMAGE_DIR + os.path.basename(image))
+
+            informUser(OLD_IMAGE_DIR, NEW_IMAGE_DIR)
+
+        elif sys.argv[2] == "neg":
+            NEW_IMAGE_DIR = OLD_IMAGE_DIR[:-1] + NEGATIVE_SUFFIX
+            print("Turning files from %s negative and putting them in %s" % (OLD_IMAGE_DIR, NEW_IMAGE_DIR))
+            ensureDir(NEW_IMAGE_DIR)
+
+            for image in imagePaths:
+                imObj = Image.open(image)
+                imObj = PIL.ImageOps.invert(imObj)
+
+                imObj.save(NEW_IMAGE_DIR + os.path.basename(image))
 
             informUser(OLD_IMAGE_DIR, NEW_IMAGE_DIR)
 
