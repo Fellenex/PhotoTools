@@ -26,7 +26,6 @@ Padding:
 import glob
 import os
 import sys
-import shutil
 from PIL import Image
 import PIL.ImageOps
 
@@ -149,6 +148,8 @@ def main():
         assert(len(imagePaths) < MAX_FILES)
 
         #Now that we have prepared everything, we can start performing the actual requested function
+
+        #The files are in the proper order, but their file names aren't sequential
         if sys.argv[2] == "rename":
             #Don't capture the directory-slash before adding the relevant suffix
             NEW_IMAGE_DIR = OLD_IMAGE_DIR[:-1] + RENAMING_SUFFIX
@@ -165,12 +166,16 @@ def main():
                 #increment the index if this was not an alternative-take image
                 if not(flag): newIndex += 1
 
-                destination = NEW_IMAGE_DIR+getIndexUpdatedName(image, newIndex, flag)
+                #Create the new file name based off of the current index
+                destination = NEW_IMAGE_DIR + getIndexUpdatedName(image, newIndex, flag)
                 print("Saving %s to %s" % (str(image), str(destination)))
-                shutil.copy2(image, destination)
+
+                imObj = Image.open(image)
+                imObj.save(destination)
 
             informUser(OLD_IMAGE_DIR, NEW_IMAGE_DIR)
 
+        #The files need to be squared off with padding
         elif sys.argv[2] == "pad":
             if sys.argv[3] == "black": PADDING_COLOUR = (0,0,0)
             else: PADDING_COLOUR = (255,255,255)
@@ -197,6 +202,7 @@ def main():
 
             informUser(OLD_IMAGE_DIR, NEW_IMAGE_DIR)
 
+        #The files need to have their colours inverted
         elif sys.argv[2] == "neg":
             NEW_IMAGE_DIR = OLD_IMAGE_DIR[:-1] + NEGATIVE_SUFFIX
             print("Turning files from %s negative and putting them in %s" % (OLD_IMAGE_DIR, NEW_IMAGE_DIR))
