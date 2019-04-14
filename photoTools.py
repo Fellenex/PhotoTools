@@ -168,6 +168,9 @@ def main():
             informUser(OLD_IMAGE_DIR, NEW_IMAGE_DIR)
 
         elif sys.argv[2] == "pad":
+            if sys.argv[3] == "black": PADDING_COLOUR = (0,0,0)
+            else: PADDING_COLOUR = (255,255,255)
+
             #Don't capture the directory-slash before adding the relative suffix
             NEW_IMAGE_DIR = OLD_IMAGE_DIR[:-1] + PADDING_SUFFIX
             print("Padding files from %s and putting them in %s" % (OLD_IMAGE_DIR, NEW_IMAGE_DIR))
@@ -178,17 +181,22 @@ def main():
                 yAdditive = xAdditive = 0
                 imObj = Image.open(image)
                 oldX,oldY = imObj.size
+                bigger = max(oldX,oldY)
 
-                print(oldX,oldY)
                 #Figure out how much extra should be added to each of the four sides
-                if oldX > oldY: yAdditive = (oldX - oldY)/2.0
-                elif oldY > oldX: xAdditive = (oldY - oldX)/2.0
+                if oldX > oldY: yAdditive = int((oldX - oldY)/2.0)
+                elif oldY > oldX: xAdditive = int((oldY - oldX)/2.0)
+
+                newCanvas = Image.new("RGB", (bigger,bigger), PADDING_COLOUR)
+
+                newCanvas.paste(imObj, (xAdditive, yAdditive))
+
+                newCanvas.save(NEW_IMAGE_DIR + os.path.basename(image))
 
                 #Image.crop() will add black boxes if the values are negative.
-                imObj = imObj.crop((0 - xAdditive, 0 - yAdditive, oldX + xAdditive, oldY + yAdditive))
+#                imObj = imObj.crop((0 - xAdditive, 0 - yAdditive, oldX + xAdditive, oldY + yAdditive))
 
-                if oldY > oldX: imObj = imObj.rotate(45)
-                imObj.save(NEW_IMAGE_DIR + os.path.basename(image))
+                #imObj.save(NEW_IMAGE_DIR + os.path.basename(image))
 
             informUser(OLD_IMAGE_DIR, NEW_IMAGE_DIR)
 
