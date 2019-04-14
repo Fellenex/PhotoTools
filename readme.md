@@ -1,3 +1,9 @@
+# Running Instructions
+    Use one of the following commands (where <> brackets represent a placeholder, and [] brackets represent optional arguments)
+        1. python photoTools.py rename <photo_directory_name>
+        2. python photoTools.py pad <photo_directory_name> [black]
+        3. python photoTools.py neg <photo_directory_name>
+
 # Renaming:
 ## Problem:
     When digitizing film negatives, the resulting image files are not properly indexed.
