@@ -17,7 +17,7 @@ from PIL import Image
 from math import floor
 import PIL.ImageOps
 
-IMAGE_SUFFIX_REGEX = "*.JPG"
+IMAGE_SUFFIXES = ["*.JPG", "*.JPEG", "*.PNG"]
 RENAMING_SUFFIX = "_(relative)/"
 PADDING_SUFFIX = "_(padded)/"
 NEGATIVE_SUFFIX = "_(negative)/"
@@ -33,8 +33,9 @@ VALID_COMMANDS = ["rename", "pad", "neg", "merge", "merge <numRows>"]
 #Parameters: String; specifies the directory in which to look
 #Return value: List of strings; each a filepath
 def getFolderImages(_dirName):
-    filesRegex = _dirName+IMAGE_SUFFIX_REGEX
-    fileNames = glob.glob(filesRegex)
+    fileNames = []
+    for ext in IMAGE_SUFFIXES:
+        fileNames += glob.glob(_dirName+ext)
     return fileNames
 
 
@@ -238,7 +239,7 @@ def main():
                     colCounter = 0
                     canvasX = canvasX * imagesPerRow
 
-                newCanvas = Image.new("RGB", (canvasX, canvasY), (0,0,0))
+                newCanvas = Image.new("RGBA", (canvasX, canvasY), (255,255,255,255))
 
                 #keep track of the position at which to paste
                 currX = 0
@@ -263,7 +264,8 @@ def main():
                     else:
                         currX += imObj.size[0]
 
-                newCanvas.save(NEW_IMAGE_DIR + "(" + str(numRows) + "-merged)" + os.path.basename(image))
+                #defaults to PNG for transparency things
+                newCanvas.save(NEW_IMAGE_DIR + "(" + str(numRows) + "-merged)" + ".PNG")
 
             else:
                 assert(False) #should never get here
