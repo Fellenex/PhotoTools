@@ -14,16 +14,18 @@ import glob
 import os
 import sys
 from PIL import Image
+from math import floor
 import PIL.ImageOps
 
 IMAGE_SUFFIX_REGEX = "*.JPG"
 RENAMING_SUFFIX = "_(relative)/"
 PADDING_SUFFIX = "_(padded)/"
 NEGATIVE_SUFFIX = "_(negative)/"
+MERGE_SUFFIX = "_(merged)/"
 MAX_FILES = 9999
 INDEX_LENGTH = 4
 
-VALID_COMMANDS = ["rename", "pad", "neg"]
+VALID_COMMANDS = ["rename", "pad", "neg", "merge", "merge <numRows>"]
 
 
 #Takes a directory name and returns all of the image files contained within.
@@ -122,90 +124,156 @@ def informUser(_oldDirectory, _newDirectory):
     return
 
 
+def printHelp():
+    print("You haven't supplied a proper command argument.")
+    print("Use 'python photoTools.py <directory_name> {"+str(VALID_COMMANDS)+"}'")
+
+
+
+
 def main():
-    #Define the output images' directory, relative to the input images' directory
-    OLD_IMAGE_DIR = sys.argv[1]
-    if not (OLD_IMAGE_DIR[-1] == '/'):
-        OLD_IMAGE_DIR += '/' #add a trailing slash if there wasn't one.
+    if not(len(sys.argv) < 2):
 
-    if sys.argv[2] in VALID_COMMANDS:
-        #Get the files to be renamed
-        imagePaths = getFolderImages(OLD_IMAGE_DIR)
-        assert(len(imagePaths) < MAX_FILES)
+        #Define the output images' directory, relative to the input images' directory
+        OLD_IMAGE_DIR = sys.argv[1]
+        if not (OLD_IMAGE_DIR[-1] == '/'):
+            OLD_IMAGE_DIR += '/' #add a trailing slash if there wasn't one.
 
-        #Now that we have prepared everything, we can start performing the actual requested function
+        if sys.argv[2] in VALID_COMMANDS:
+            #Get the files to be renamed
+            imagePaths = getFolderImages(OLD_IMAGE_DIR)
+            assert(len(imagePaths) < MAX_FILES)
 
-        #The files are in the proper order, but their file names aren't sequential
-        if sys.argv[2] == "rename":
-            #Don't capture the directory-slash before adding the relevant suffix
-            NEW_IMAGE_DIR = OLD_IMAGE_DIR[:-1] + RENAMING_SUFFIX
-            print("Moving files from %s to %s" % (OLD_IMAGE_DIR, NEW_IMAGE_DIR))
-            ensureDir(NEW_IMAGE_DIR)
+            #Now that we have prepared everything, we can start performing the actual requested function
 
-            #Starts at 0 to account for incrementing when seeing a non-alternative (the 1st image can never be an alternative take)
-            newIndex = 0
+            #The files are in the proper order, but their file names aren't sequential
+            if sys.argv[2] == "rename":
+                #Don't capture the directory-slash before adding the relevant suffix
+                NEW_IMAGE_DIR = OLD_IMAGE_DIR[:-1] + RENAMING_SUFFIX
+                print("Moving files from %s to %s" % (OLD_IMAGE_DIR, NEW_IMAGE_DIR))
+                ensureDir(NEW_IMAGE_DIR)
 
-            #For each image, rename based on the new indices
-            for image in imagePaths:
-                flag = alternativeTake(image)
+                #Starts at 0 to account for incrementing when seeing a non-alternative (the 1st image can never be an alternative take)
+                newIndex = 0
 
-                #increment the index if this was not an alternative-take image
-                if not(flag): newIndex += 1
+                #For each image, rename based on the new indices
+                for image in imagePaths:
+                    flag = alternativeTake(image)
 
-                #Create the new file name based off of the current index
-                destination = NEW_IMAGE_DIR + getIndexUpdatedName(image, newIndex, flag)
-                print("Saving %s to %s" % (str(image), str(destination)))
+                    #increment the index if this was not an alternative-take image
+                    if not(flag): newIndex += 1
 
-                imObj = Image.open(image)
-                imObj.save(destination)
+                    #Create the new file name based off of the current index
+                    destination = NEW_IMAGE_DIR + getIndexUpdatedName(image, newIndex, flag)
+                    print("Saving %s to %s" % (str(image), str(destination)))
 
-            informUser(OLD_IMAGE_DIR, NEW_IMAGE_DIR)
+                    imObj = Image.open(image)
+                    imObj.save(destination)
 
-        #The files need to be squared off with padding
-        elif sys.argv[2] == "pad":
-            if sys.argv[3] == "black": PADDING_COLOUR = (0,0,0)
-            else: PADDING_COLOUR = (255,255,255)
+            #The files need to be squared off with padding
+            elif sys.argv[2] == "pad":
+                if sys.argv[3] == "black": PADDING_COLOUR = (0,0,0)
+                else: PADDING_COLOUR = (255,255,255)
 
-            #Don't capture the directory-slash before adding the relative suffix
-            NEW_IMAGE_DIR = OLD_IMAGE_DIR[:-1] + PADDING_SUFFIX
-            print("Padding files from %s and putting them in %s" % (OLD_IMAGE_DIR, NEW_IMAGE_DIR))
-            ensureDir(NEW_IMAGE_DIR)
+                #Don't capture the directory-slash before adding the relative suffix
+                NEW_IMAGE_DIR = OLD_IMAGE_DIR[:-1] + PADDING_SUFFIX
+                print("Padding files from %s and putting them in %s" % (OLD_IMAGE_DIR, NEW_IMAGE_DIR))
+                ensureDir(NEW_IMAGE_DIR)
 
-            for image in imagePaths:
-                yAdditive = xAdditive = 0
-                imObj = Image.open(image)
-                oldX,oldY = imObj.size
-                bigger = max(oldX,oldY)
+                for image in imagePaths:
+                    yAdditive = xAdditive = 0
+                    imObj = Image.open(image)
+                    oldX,oldY = imObj.size
+                    bigger = max(oldX,oldY)
 
-                #Figure out how much extra should be added to each of the four sides
-                if oldX > oldY: yAdditive = int((oldX - oldY)/2.0)
-                elif oldY > oldX: xAdditive = int((oldY - oldX)/2.0)
+                    #Figure out how much extra should be added to each of the four sides
+                    if oldX > oldY: yAdditive = int((oldX - oldY)/2.0)
+                    elif oldY > oldX: xAdditive = int((oldY - oldX)/2.0)
 
-                #Create a new, larger image with the requested padding colour, and then paste the original image overtop in the correct position
-                newCanvas = Image.new("RGB", (bigger,bigger), PADDING_COLOUR)
-                newCanvas.paste(imObj, (xAdditive, yAdditive))
-                newCanvas.save(NEW_IMAGE_DIR + os.path.basename(image))
+                    #Create a new, larger image with the requested padding colour, and then paste the original image overtop in the correct position
+                    newCanvas = Image.new("RGB", (bigger,bigger), PADDING_COLOUR)
+                    newCanvas.paste(imObj, (xAdditive, yAdditive))
+                    newCanvas.save(NEW_IMAGE_DIR + os.path.basename(image))
 
-            informUser(OLD_IMAGE_DIR, NEW_IMAGE_DIR)
 
-        #The files need to have their colours inverted
-        elif sys.argv[2] == "neg":
-            NEW_IMAGE_DIR = OLD_IMAGE_DIR[:-1] + NEGATIVE_SUFFIX
-            print("Turning files from %s negative and putting them in %s" % (OLD_IMAGE_DIR, NEW_IMAGE_DIR))
-            ensureDir(NEW_IMAGE_DIR)
+            #The files need to have their colours inverted
+            elif sys.argv[2] == "neg":
+                NEW_IMAGE_DIR = OLD_IMAGE_DIR[:-1] + NEGATIVE_SUFFIX
+                print("Turning files from %s negative and putting them in %s" % (OLD_IMAGE_DIR, NEW_IMAGE_DIR))
+                ensureDir(NEW_IMAGE_DIR)
 
-            for image in imagePaths:
-                imObj = Image.open(image)
-                imObj = PIL.ImageOps.invert(imObj)
+                for image in imagePaths:
+                    imObj = Image.open(image)
+                    imObj = PIL.ImageOps.invert(imObj)
 
-                imObj.save(NEW_IMAGE_DIR + os.path.basename(image))
+                    imObj.save(NEW_IMAGE_DIR + os.path.basename(image))
 
-            informUser(OLD_IMAGE_DIR, NEW_IMAGE_DIR)
+                informUser(OLD_IMAGE_DIR, NEW_IMAGE_DIR)
 
-        else: assert(False) #should never get here
+            elif sys.argv[2] == "merge":
+                NEW_IMAGE_DIR = OLD_IMAGE_DIR[:-1] + MERGE_SUFFIX
+                print("Merging files from %s and putting them in %s (assumes images are the same size)" % (OLD_IMAGE_DIR, NEW_IMAGE_DIR))
+                ensureDir(NEW_IMAGE_DIR)
+
+                if len(sys.argv)==4:
+                    numRows = int(sys.argv[3])
+                else:
+                    numRows = 1
+
+                #Determine the size of the merged image
+                imagesPerRow = int(len(imagePaths)/numRows)
+                canvasX,canvasY = Image.open(imagePaths[0]).size
+                canvasY = canvasY * numRows
+                if not(floor(imagesPerRow) == imagesPerRow):
+                    #if we can't split the rows up evenly, then make the first rows have the extras
+                    numOverfilledRowsRemaining = len(imagePaths) % imagesPerRow
+                    colCounter = -1
+                    canvasX = canvasX * (imagesPerRow + 1)
+                else:
+                    #it'll be a nice, even image!
+                    numOverfilledRowsRemaining = 0
+                    colCounter = 0
+                    canvasX = canvasX * imagesPerRow
+
+                print(canvasX,canvasY)
+                newCanvas = Image.new("RGB", (canvasX, canvasY), (0,0,0))
+
+                #keep track of the position at which to paste
+                currX = 0
+                currY = 0
+                for image in imagePaths:
+                    imObj = Image.open(image)
+
+                    newCanvas.paste(imObj, (currX,currY))
+
+                    colCounter += 1
+                    if colCounter == imagesPerRow:
+                        if numOverfilledRowsRemaining > 0:
+                            #give the next row an extra image
+                            colCounter = -1
+                        else:
+                            colCounter = 0
+
+                        #Start the next row
+                        currX = 0
+                        currY += imObj.size[1]
+                    else:
+                        currX += imObj.size[0]
+
+                newCanvas.save(NEW_IMAGE_DIR + "(" + str(numRows) + "-merged)" + os.path.basename(image))
+
+            else:
+                assert(False) #should never get here
+
+            informUser(OLD_IMAGE_DIR,NEW_IMAGE_DIR)
+
+
+        else:
+            #user didn't choose a proper function
+            printHelp()
 
     else:
-        print("You haven't supplied a proper command argument.")
-        print("Use 'python photoTools.py <directory_name> {rename, pad}'")
+        #user didn't supply enough arguments
+        printHelp()
 
 main()
