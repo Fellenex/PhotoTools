@@ -3,6 +3,7 @@
         1. python photoTools.py rename <photo_directory_name>
         2. python photoTools.py pad <photo_directory_name> [black]
         3. python photoTools.py neg <photo_directory_name>
+	4. python photoTools.py merge [1 row]
 
 # Renaming:
 ## Problem:
@@ -27,3 +28,10 @@
     Some scanners won't invert the image's colour, and it must be done digitally.
 ## Solution:
     Batch colour inversion
+
+
+# Merging:
+## Problem:
+    Sprite sheet maintenance.
+## Solution:
+    Flexible merging (based on the number of rows)
