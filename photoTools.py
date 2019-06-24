@@ -221,16 +221,20 @@ def main():
                     numRows = 1
 
                 #Determine the size of the merged image
-                imagesPerRow = int(len(imagePaths)/numRows)
+                imagesPerRow = len(imagePaths)/numRows
                 canvasX,canvasY = Image.open(imagePaths[0]).size
                 canvasY = canvasY * numRows
+                print("yesss", floor(imagesPerRow), imagesPerRow)
+                print("counts:",canvasX,canvasY,numRows,imagesPerRow)
                 if not(floor(imagesPerRow) == imagesPerRow):
+                    imagesPerRow = int(imagesPerRow)
                     #if we can't split the rows up evenly, then make the first rows have the extras
                     numOverfilledRowsRemaining = len(imagePaths) % imagesPerRow
                     colCounter = -1
                     canvasX = canvasX * (imagesPerRow + 1)
                 else:
                     #it'll be a nice, even image!
+                    imagesPerRow = int(imagesPerRow)
                     numOverfilledRowsRemaining = 0
                     colCounter = 0
                     canvasX = canvasX * imagesPerRow
@@ -251,6 +255,7 @@ def main():
                         if numOverfilledRowsRemaining > 0:
                             #give the next row an extra image
                             colCounter = -1
+                            numOverfilledRowsRemaining -= 1
                         else:
                             colCounter = 0
 
