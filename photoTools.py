@@ -224,12 +224,11 @@ def main():
                 imagesPerRow = len(imagePaths)/numRows
                 canvasX,canvasY = Image.open(imagePaths[0]).size
                 canvasY = canvasY * numRows
-                print("yesss", floor(imagesPerRow), imagesPerRow)
-                print("counts:",canvasX,canvasY,numRows,imagesPerRow)
+
                 if not(floor(imagesPerRow) == imagesPerRow):
                     imagesPerRow = int(imagesPerRow)
                     #if we can't split the rows up evenly, then make the first rows have the extras
-                    numOverfilledRowsRemaining = len(imagePaths) % imagesPerRow
+                    numOverfilledRowsRemaining = len(imagePaths) % numRows -1
                     colCounter = -1
                     canvasX = canvasX * (imagesPerRow + 1)
                 else:
@@ -239,7 +238,6 @@ def main():
                     colCounter = 0
                     canvasX = canvasX * imagesPerRow
 
-                print(canvasX,canvasY)
                 newCanvas = Image.new("RGB", (canvasX, canvasY), (0,0,0))
 
                 #keep track of the position at which to paste
