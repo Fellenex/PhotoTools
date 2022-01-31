@@ -73,17 +73,19 @@ def pad_images(_input_image_paths : list[str], _output_image_dir : str, \
         with Image.open(image) as image_object:
             old_x,old_y = image_object.size
 
-        bigger_dimension = max(old_x,old_y)
+            bigger_dimension = max(old_x,old_y)
 
-        #Figure out how much extra should be added to each of the four sides
-        if old_x > old_y:
-            y_additive = int((old_x - old_y)/2.0)
-        elif old_y > old_x:
-            x_additive = int((old_y - old_x)/2.0)
+            #Figure out how much extra should be added to each of the four sides
+            if old_x > old_y:
+                y_additive = int((old_x - old_y)/2.0)
+            elif old_y > old_x:
+                x_additive = int((old_y - old_x)/2.0)
 
-        #Create a new, larger image with the requested padding colour,
-        #   and then paste the original image overtop in the correct position
-        with Image.new("RGB", (bigger_dimension,bigger_dimension), _pad_colour) as new_canvas:
+            debug("just before new image")
+
+            #Create a new, larger image with the requested padding colour,
+            #   and then paste the original image overtop in the correct position
+            new_canvas = Image.new("RGB", (bigger_dimension,bigger_dimension), _pad_colour)
             new_canvas.paste(image_object, (x_additive, y_additive))
             new_canvas.save(_output_image_dir + os.path.basename(image))
 
@@ -176,7 +178,7 @@ def get_alternative_flag(_image_path : str) -> str:
     return alternative_flag
 
 
-def get_image_base_name_and_index(_image_path : str) -> (str, str):
+def get_image_base_name_and_index(_image_path : str) -> Tuple(str, str):
     """
     Takes an image file path and returns the "base name" and index as two parts.
     That is, the file name without any indices or alternative flags.

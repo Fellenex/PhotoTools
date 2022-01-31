@@ -1,5 +1,8 @@
 """Phototools.py constants"""
 import enum
+import sys
+
+from typing import Optional,Tuple
 
 class Error(enum.Enum):
     """Special values for different kinds of execution errors"""
@@ -7,9 +10,24 @@ class Error(enum.Enum):
     WRONG_NUM_ARGUMENTS = 2
     INVALID_COMMAND = 3
 
-def debug(_string_arg):
+def print_help(_error_code : Error, _command_name : Optional[str] = None) -> None:
     """
-    Prints _string_arg if the global DEBUG flag has been set to true.
+    Prints a helpful string to the user, for when they have run the program incorrectly.
+    """
+    if _error_code == Error.TOO_FEW_ARGUMENTS:
+        print("You haven't supplied enough arguments.")
+    elif _error_code == Error.INVALID_COMMAND:
+        print("f{_command_name} is not a valid command.")
+    elif _error_code == Error.WRONG_NUM_ARGUMENTS:
+        print("You have supplied the wrong number of arguments."
+            f"{_command_name} needs {MAP_COMMAND_TO_NUM_ARGS[_command_name]} arguments")
+
+    print(f"Use 'python photo_tools.py <directory_name> {str(DISPLAY_COMMANDS)}'")
+    sys.exit(_error_code)
+
+def debug(_arg : str) -> None:
+    """
+    Prints _arg if the global DEBUG flag has been set to true.
     """
     if DEBUG:
         print(_string_arg)
@@ -61,6 +79,6 @@ VALID_COMMANDS = [RENAMING_COMMAND, PADDING_COMMAND, NEGATIVE_COMMAND, MERGE_COM
 
 #the display version of the commands to be presented to the user when they need help
 DISPLAY_COMMANDS = [RENAMING_COMMAND,
-                    PADDING_COMMAND + "[black,white]",
+                    PADDING_COMMAND + " <black,white>",
                     NEGATIVE_COMMAND,
-                    MERGE_COMMAND + "<numRows>"]
+                    MERGE_COMMAND + " <numRows>"]

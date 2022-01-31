@@ -1,13 +1,20 @@
-"""Written by Casey Keeler, 2019/2022
-Should be run as "python photoTools.py <pathToInputDirectory> {rename, pad, neg}"
-    #Choosing rename will allow you to reindex properly ordered but non-sequential file names
-    #Choosing pad will make each image square by padding the shorter sides
-    #Choosing neg will invert each image's colour
+"""A small collection of tools for batch processing image files.
+Written by Casey Keeler, 2019/2022
 
-Current limitations:
+Should be run as
+    "python photo_tools.py <pathToInputDirectory> {rename, pad, neg, merge} [extra_arg]"
+    -
+    rename will allow you to reindex properly ordered but non-sequential file names
+    pad will make each image square by padding the shorter sides
+    neg will invert each image's colour
+    merge will concatenate all of the images together into a grid
+
+
+Current limitations
     Only operates on .JPGs/.PNGs
-    #Only operates on RGB images
-    Padding does not leave images properly rotated    #TODO what did this mean??
+    RGB vs RGBA images
+    Renaming incorrectly rotates vertical images
+    Padding incorrectly rotates vertical images
 """
 
 import glob
@@ -25,27 +32,37 @@ from image_ops import rename_images, pad_images, negative_images, merge_images
 #
 #Parameters: String; specifies the directory in which to look
 #Return value: List of strings; each a filepath
-def get_folder_images(_dir_name):
+def get_folder_images(_dir_name : str) -> list[str]:
+    """
+    Takes a directory name and returns a list of strings for all of the allowable
+        (as defined by IMAGE_SUFFIXES) image files contained within.
+    """
     file_names = []
     for ext in IMAGE_SUFFIXES:
         file_names += glob.glob(_dir_name+ext)
     return file_names
 
 
-#Ensures that the requested directory exists, and exits if it cannot exist for some reason.
-#
-#Parameters: String
-#Return value: None
-def ensure_dir(_dir_to_test):
+def ensure_dir(_dir_to_test : str) -> bool:
+    """
+    Ensures that either _dir_to_test is already a directory, or that it can be created.
+    Exits from the program if it does not exist and cannot be created.
+    """
     if not os.path.isdir(_dir_to_test):
         try:
             os.mkdir(_dir_to_test)
         except OSError:
             sys.exit("Directory does not exist, and could not create it.")
-        else: return
+
+    return True
 
 
-def inform_user_before_operation(_input_image_dir, _output_image_dir, _command_name):
+def inform_user_before_operation(_input_image_dir : str, _output_image_dir : str, \
+    _command_name : str) -> None:
+    """
+    Informs the user what operation they have chosen, based on _command_name, and
+        gives them a little extra information about what is going to happen.
+    """
     if _command_name == RENAMING_COMMAND:
         print(f"Moving files from {_input_image_dir} to {_output_image_dir}")
     elif _command_name == PADDING_COMMAND:
@@ -59,34 +76,32 @@ def inform_user_before_operation(_input_image_dir, _output_image_dir, _command_n
             f"putting them in {_output_image_dir} (assumes images are the same size)")
 
 
-#Counts the number of files in input/output directories and informs the user.
-#Acts as a human-visible soft correctness check for the operation.
-#
-#Parameters: String, and string
-#Return value: None
-def inform_user_after_operation(_input_image_dir, _output_image_dir, _command_name):
-    num_old_files = len(glob.glob(_input_image_dir+'*'))
-    num_new_files = len(glob.glob(_output_image_dir+'*'))
+def get_num_files_in_directory(_directory : str) -> int:
+    """
+    Takes a directory path and returns an integer indicating how many files are therein contained.
+    """
+    return len(glob.glob(_directory+'*'))
+
+
+def inform_user_after_operation(_input_image_dir : str, _output_image_dir : str, \
+    _command_name : str, _num_previous_files) -> None:
+    """
+    Informs the user about the success of their operation, and details how many
+        files were created as a result of their operation request.
+    Takes into account any files that were previously in the output directory.
+    """
+    num_old_files = get_num_files_in_directory(_input_image_dir)
+    num_new_files = get_num_files_in_directory(_output_image_dir) - _num_previous_files
     print(f"{_command_name} successful: {num_old_files} files in {_input_image_dir} "
         f"have been copied over to {num_new_files} files in {_output_image_dir}")
 
 
-def print_help(_error_code, _command_name=None):
-    if _error_code == Error.TOO_FEW_ARGUMENTS:
-        print("You haven't supplied enough arguments.")
-    elif _error_code == Error.INVALID_COMMAND:
-        print("f{_command_name} is not a valid command.")
-    elif _error_code == Error.WRONG_NUM_ARGUMENTS:
-        print("You have supplied the wrong number of arguments."
-            f"{_command_name} needs {MAP_COMMAND_TO_NUM_ARGS[_command_name]} arguments")
-
-    print(f"Use 'python photo_tools.py <directory_name> {str(DISPLAY_COMMANDS)}'")
-    sys.exit(_error_code)
-
-
-
-def choose_image_command(_input_image_paths, _output_image_dir, _command_name,
-    _auxilliary_argument=None):
+def choose_image_command(_input_image_paths : list[str], _output_image_dir : str, \
+    _command_name : str, _auxilliary_argument : Optional[str] = None) -> None:
+    """
+    The "switch-case" for all possible image commands.
+    Error-handling should have been performed before this function was called.
+    """
 
     #The files are in the proper order, but their file names aren't sequential
     if _command_name == RENAMING_COMMAND:
@@ -119,7 +134,6 @@ def choose_image_command(_input_image_paths, _output_image_dir, _command_name,
     else:
         print("Error: Incorrect command supplied")
         assert False #should never get here - commandName was already validated
-
 
 
 if __name__ == "__main__":
@@ -160,6 +174,9 @@ if __name__ == "__main__":
             #Make sure we can write to the directory
             ensure_dir(outputImageDir)
 
+            #Get the number of files already in the output image directory
+            num_previous_files = get_num_files_in_directory(outputImageDir)
+
             #Inform the user what is going to happen to the images
             inform_user_before_operation(inputImageDir, outputImageDir, sys.argv[2])
 
@@ -172,4 +189,5 @@ if __name__ == "__main__":
                 choose_image_command(inputImagePaths, outputImageDir, sys.argv[2])
 
             #Inform the user what happened to the images
-            inform_user_after_operation(inputImageDir, outputImageDir, sys.argv[2])
+            inform_user_after_operation(inputImageDir, outputImageDir, sys.argv[2], \
+                num_previous_files)
