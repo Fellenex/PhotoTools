@@ -21,7 +21,6 @@ from constants import *
 from image_ops import rename_images, pad_images, negative_images, merge_images
 
 
-
 #Takes a directory name and returns all of the image files contained within.
 #
 #Parameters: String; specifies the directory in which to look
@@ -29,8 +28,6 @@ from image_ops import rename_images, pad_images, negative_images, merge_images
 def get_folder_images(_dir_name):
     file_names = []
     for ext in IMAGE_SUFFIXES:
-        print(_dir_name+ext)
-        print(glob.glob(_dir_name+ext))
         file_names += glob.glob(_dir_name+ext)
     return file_names
 
