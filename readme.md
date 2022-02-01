@@ -1,10 +1,10 @@
 # Running Instructions
     Use one of the following commands (where <> brackets represent a placeholder,
         and [] brackets represent optional arguments)
-        1. python photoTools.py rename <photo_directory_name>
-        2. python photoTools.py pad <photo_directory_name> [black, white]
-        3. python photoTools.py neg <photo_directory_name>
-        4. python photoTools.py merge <photo_directory_name> [# rows]
+        1. python photo_tools.py rename <photo_directory_name>
+        2. python photo_tools.py pad <photo_directory_name> [black, white]
+        3. python photo_tools.py neg <photo_directory_name>
+        4. python photo_tools.py merge <photo_directory_name> [# rows]
 
 # Renaming:
 ## Problem:
@@ -33,7 +33,7 @@
 
 # Negating:
 ## Problem:
-    Some scanners won't invert the image's colour, and it must be done digitally.
+    Some scanners won't invert the image's colour, and so it must be done digitally.
 ## Solution:
     Batch colour inversion
 

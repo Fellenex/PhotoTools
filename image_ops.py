@@ -3,6 +3,7 @@ from math import floor
 import os
 import re
 
+from typing import Tuple
 from PIL import Image
 import PIL.ImageOps
 
@@ -27,7 +28,7 @@ def rename_images(_input_image_paths : list[str], _output_image_dir : str) -> No
     #Assumes that each image has the same base name as the first one.
     #Also gets the "base index", e.g., 1, 001, 00018, etc.
     base_name, base_index = get_image_base_name_and_index(_input_image_paths[0])
-    print(f"Base name ({base_name}) and index({base_index})")
+    debug(f"Base name ({base_name}) and index({base_index})")
 
     #Since the first image can't be an alternative take, this lets us
     #   get the proper index length for all of the images
@@ -67,21 +68,22 @@ def pad_images(_input_image_paths : list[str], _output_image_dir : str, \
     Saves the padded images in a new directory, defined by PADDING_SUFFIX
     """
     for image in _input_image_paths:
-
-        #Determine whether we shoud pad the left/right or the top/bottom
-        y_additive = x_additive = 0
         with Image.open(image) as image_object:
-            old_x,old_y = image_object.size
 
+            #Rotate the image based on the EXIF data's orientation tag.
+            #Ensures that images taller than they are wide are kept as such when padding
+            image_object = PIL.ImageOps.exif_transpose(image_object)
+
+            old_x,old_y = image_object.size
             bigger_dimension = max(old_x,old_y)
 
             #Figure out how much extra should be added to each of the four sides
+            x_additive = y_additive = 0
             if old_x > old_y:
-                y_additive = int((old_x - old_y)/2.0)
-            elif old_y > old_x:
-                x_additive = int((old_y - old_x)/2.0)
+                y_additive = (old_x - old_y)//2
 
-            debug("just before new image")
+            elif old_y > old_x:
+                x_additive = (old_y - old_x)//2
 
             #Create a new, larger image with the requested padding colour,
             #   and then paste the original image overtop in the correct position
@@ -99,6 +101,12 @@ def negative_images(_input_image_paths : list[str], _output_image_dir : str) -> 
     for image in _input_image_paths:
 
         with Image.open(image) as image_object:
+
+            #Rotate the image based on the EXIF data's orientation tag.
+            #Ensures that images taller than they are wide are kept as such when padding
+            image_object = PIL.ImageOps.exif_transpose(image_object)
+
+            #Invert the image to make it negative, then save it.
             image_object = PIL.ImageOps.invert(image_object)
             image_object.save(_output_image_dir + os.path.basename(image))
 
@@ -178,7 +186,7 @@ def get_alternative_flag(_image_path : str) -> str:
     return alternative_flag
 
 
-def get_image_base_name_and_index(_image_path : str) -> Tuple(str, str):
+def get_image_base_name_and_index(_image_path : str) -> Tuple[str, str]:
     """
     Takes an image file path and returns the "base name" and index as two parts.
     That is, the file name without any indices or alternative flags.

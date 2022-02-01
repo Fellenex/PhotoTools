@@ -144,7 +144,7 @@ if __name__ == "__main__":
     elif not sys.argv[2] in VALID_COMMANDS:
         print_help(Error.INVALID_COMMAND, sys.argv[2])
 
-    elif not len(sys.argv) == MAP_COMMAND_TO_NUM_ARGS[sys.argv[2]]:
+    elif not len(sys.argv) >= MAP_COMMAND_TO_NUM_ARGS[sys.argv[2]]:
         print_help(Error.WRONG_NUM_ARGUMENTS, sys.argv[2])
 
     else:
@@ -158,12 +158,11 @@ if __name__ == "__main__":
         #Make sure there aren't too many images to process
         inputImagePaths = get_folder_images(inputImageDir)
 
-        print("Image paths:")
-        print(inputImagePaths)
+        debug(f"Image paths:\n{inputImagePaths}")
+
 
         if len(inputImagePaths) > MAX_FILES:
-            print(f"There are {len(inputImagePaths)} files in {inputImageDir} - "
-                f"there can be at most {MAX_FILES} files")
+            print_help(Error.TOO_MANY_FILES, len(inputImagePaths))
 
         else:
 
@@ -182,8 +181,8 @@ if __name__ == "__main__":
 
             #Now that we have prepared everything, we can start performing the
             #   actual requested function
-            #Send over the auxilliary argument if one is needed
-            if MAP_COMMAND_TO_NUM_ARGS[sys.argv[2]] == 4:
+            #Send over the auxilliary argument if one is given
+            if len(sys.argv) > 3:
                 choose_image_command(inputImagePaths, outputImageDir, sys.argv[2], sys.argv[3])
             else:
                 choose_image_command(inputImagePaths, outputImageDir, sys.argv[2])

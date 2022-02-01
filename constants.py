@@ -2,15 +2,16 @@
 import enum
 import sys
 
-from typing import Optional,Tuple
+from typing import Optional
 
 class Error(enum.Enum):
     """Special values for different kinds of execution errors"""
     TOO_FEW_ARGUMENTS = 1
     WRONG_NUM_ARGUMENTS = 2
     INVALID_COMMAND = 3
+    TOO_MANY_FILES = 4
 
-def print_help(_error_code : Error, _command_name : Optional[str] = None) -> None:
+def print_help(_error_code : Error, _extra_arg : Optional[str] = None) -> None:
     """
     Prints a helpful string to the user, for when they have run the program incorrectly.
     """
@@ -20,7 +21,11 @@ def print_help(_error_code : Error, _command_name : Optional[str] = None) -> Non
         print("f{_command_name} is not a valid command.")
     elif _error_code == Error.WRONG_NUM_ARGUMENTS:
         print("You have supplied the wrong number of arguments."
-            f"{_command_name} needs {MAP_COMMAND_TO_NUM_ARGS[_command_name]} arguments")
+            f"{_extra_arg} needs {MAP_COMMAND_TO_NUM_ARGS[_extra_arg]} arguments")
+    elif _error_code == Error.TOO_MANY_FILES:
+        print(f"There are too many files for this operation ({_extra_arg}/{MAX_FILES} files)")
+    else:
+        print(f"Unknown error code: {_error_code}")
 
     print(f"Use 'python photo_tools.py <directory_name> {str(DISPLAY_COMMANDS)}'")
     sys.exit(_error_code)
@@ -30,7 +35,7 @@ def debug(_arg : str) -> None:
     Prints _arg if the global DEBUG flag has been set to true.
     """
     if DEBUG:
-        print(_string_arg)
+        print(_arg)
 
 DEBUG = True
 
@@ -69,9 +74,9 @@ MAP_COMMAND_TO_SUFFIX = {
 
 MAP_COMMAND_TO_NUM_ARGS = {
     RENAMING_COMMAND : 3,
-    PADDING_COMMAND : 4,
+    PADDING_COMMAND : 3,        #final 4th argument (pad colour) is optional
     NEGATIVE_COMMAND : 3,
-    MERGE_COMMAND : 4,
+    MERGE_COMMAND : 3,          #final 4th argument (num rows) is optional
 }
 
 #commands that a user can enter to execute part of the code from the command-line
