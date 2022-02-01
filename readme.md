@@ -1,26 +1,34 @@
 # Running Instructions
-    Use one of the following commands (where <> brackets represent a placeholder, and [] brackets represent optional arguments)
+    Use one of the following commands (where <> brackets represent a placeholder,
+        and [] brackets represent optional arguments)
         1. python photoTools.py rename <photo_directory_name>
-        2. python photoTools.py pad <photo_directory_name> [black]
+        2. python photoTools.py pad <photo_directory_name> [black, white]
         3. python photoTools.py neg <photo_directory_name>
-        4. python photoTools.py merge <photo_directory_name> [1 row]
+        4. python photoTools.py merge <photo_directory_name> [# rows]
 
 # Renaming:
 ## Problem:
     When digitizing film negatives, the resulting image files are not properly indexed.
     This happens for two reasons:
-        1. Multiple reels are scanned at the same time, so subsequent reels start above 1
-        2. Multiple scans are made of the same negative, so subsequent negatives start beyond where they normally would.
+        1. Multiple reels are scanned at the same time, so subsequent reels' first image
+            starts at an index greater than 1
+        2. Multiple scans are made of the same negative, so subsequent negatives start
+            beyond where they normally would.
 
 ## Solution:
     Reindex all of the images based on the total number of images, rather than their current names.
+    Incorporate "alternative takes", which are denoted by having a letter flag at the end of their filename.
+    For example, PICT0006 and PICT0009b could represent alternative takes of the same negative.
 
 
 # Padding:
 ## Problem:
-    When uploading to Instagram, they only accept square photos
+    The most common format for uploading to Instagram is with square photos, and
+        35mm negatives are a 2:3 format.
+    This means that up to 1/3 of the image can be lost by squaring off the sides.
 ## Solution:
-    Pad the shorter sides of the image to make all dimensions equal (by default, this is done with white)
+    Pad the shorter sides of the image to make all dimensions equal.
+    By default, this is done with grey, but can be done with black/white per user arguments.
 
 
 # Negating:
