@@ -1,7 +1,7 @@
 """A set of functions for manipulating batches of images"""
-from math import floor
 import os
 import re
+import math
 
 from typing import Tuple
 from PIL import Image
@@ -111,14 +111,118 @@ def negative_images(_input_image_paths : list[str], _output_image_dir : str) -> 
             image_object.save(_output_image_dir + os.path.basename(image))
 
 
-def merge_images(_input_image_paths : list[str], _output_image_dir : str, _num_rows : int) -> None:
+def merge_images(_input_image_paths : list[str], _output_image_dir : str, \
+    _constraint_amount : int, _constraint_type : Direction, _fill_direction : Direction) -> None:
+    #_num_rows : int, ) -> None:
     """
+        _fill_direction determines whether the images are placed column-wise or row-wise.
+        _constraint_type determines whether the number of rows or columns has been constrained.
+        _constraint_amount is the fixed number of rows or columns given by the user.
+
+    Note that while the user has the option to constrain the number of rows or columns,
+        different commands can result in the same file.
+    e.g., If you have 7 images, then the following two commands
+            python photo_tools.py d/ merge 2 row row
+            python photo_tools.py d/ merge 4 column row
+        will have the same output, since
+            2 rows and 7 images --> 4 columns, and
+            4 columns and 7 images --> 2 rows.
+
+        (However, in this case,
+            python photo_tools.py d/ merge 2 row column
+        would yield a different image, since here the images are being filled by column.)
+    """
+    #Find the largest x/y sizes of all input images to ensure the resulting merged image
+    #   will conform to some amount of regularity
+    image_x_sizes = []
+    image_y_sizes = []
+    for image in _input_image_paths:
+        with Image.open(image) as image_object:
+            image_x_sizes.append(image_object.size[0])
+            image_y_sizes.append(image_object.size[1])
+    largest_x = max(image_x_sizes)
+    largest_y = max(image_y_sizes)
+
+    #Since the user fixed the number of images and rows, we can decide the number of columns
+    if _constraint_type == Direction.ROW:
+        num_rows = _constraint_amount
+        num_columns = math.ceil(len(_input_image_paths) / _constraint_amount)
+
+    #Since the user fixed the number of images and columns, we can decide the number of rows
+    elif _constraint_type == Direction.COLUMN:
+        num_columns = _constraint_amount
+        num_rows = math.ceil(len(_input_image_paths) / _constraint_amount)
+
+    else:
+        sys.exit("Merge dimension constraint error")
+
+    #Generate the coordinates for each of the images, based on how many rows/coulmns
+    #   the user specified, and whether the images are being placed filling row by row
+    #   or filling column by column
+    coordinates = generate_image_coordinates(_fill_direction, len(_input_image_paths), \
+        num_rows, num_columns, largest_x, largest_y)
+
+    #Set up the new image, whose dimensions accommodate all input images (and maybe a
+    #   bit of extra blank space, depending on how evenly the images fit)
+    with Image.new("RGBA", (largest_x * num_columns, largest_y * num_rows), \
+        WHITE_COLOUR_ALPHA) as new_canvas:
+
+        #Paste all of the input images to the new canvas
+        image_count = 0
+        for image in _input_image_paths:
+            with Image.open(image) as image_object:
+                new_canvas.paste(image_object, coordinates[image_count])
+                image_count += 1
+
+        #Once all the images have been pasted in, then save the image.
+        new_canvas.save(f"{_output_image_dir}({num_rows}x{num_columns})_"
+            f"{direction_to_string(_fill_direction)}-merged.PNG")
+
+
+def generate_image_coordinates(direction : Direction, _num_images : int, \
+    _num_rows : int, _num_cols : int, _x : int, _y : int) -> list[Tuple[int,int]]:
+    """
+    Generates coordinates for a grid where either:
+        i) a column is filled to a specified number of rows before moving on to the next column, or
+        ii) a row is filled to a specified number of columns before moving on to the next row.
+    """
+    coordinates = []
+    image_counter = 0
+    if direction == Direction.COLUMN:
+        column_counter = 0
+        #using a "do-while" loop to get the increment in just before the final mod check
+        #    (this avoids havging the column counter increment on the first run when 0 % 0 == 0)
+        while image_counter < _num_images:
+            coordinates.append( (column_counter * _x, (image_counter % _num_rows) * _y) )
+            #Every _num_rows images, we move on to the next column
+            image_counter += 1
+            if image_counter % _num_rows == 0:
+                column_counter += 1
+
+    elif direction == Direction.ROW:
+        row_counter = 0
+        while image_counter < _num_images:
+            coordinates.append( ((image_counter % _num_cols) * _x, row_counter * _y) )
+            #Every _num_cols images, we move on to the next row
+            image_counter += 1
+            if image_counter % _num_cols == 0:
+                row_counter += 1
+
+    else:
+        sys.exit("Coordinate direction error")
+
+    return coordinates
+
+
+"""
+def merge_images(_input_image_paths : list[str], _output_image_dir : str, _num_rows : int) -> None:
+
     Takes a set of images and merges them into one image, organized into _num_rows rows.
     Any leftover space will be filled with transparent background.
         (e.g., fitting 8 images into 3 rows)
 
     Saves the merge image in a new directory, defined by MERGE_SUFFIX
-    """
+
     #Determine the size of the merged image
     images_per_row = len(_input_image_paths)/_num_rows
     canvas_x,canvas_y = Image.open(_input_image_paths[0]).size
@@ -164,7 +268,7 @@ def merge_images(_input_image_paths : list[str], _output_image_dir : str, _num_r
 
     #defaults to PNG for transparency things
     new_canvas.save(_output_image_dir + "(" + str(_num_rows) + "-merged)" + ".PNG")
-
+"""
 
 
 def get_alternative_flag(_image_path : str) -> str:

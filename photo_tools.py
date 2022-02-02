@@ -13,8 +13,6 @@ Should be run as
 Current limitations
     Only operates on .JPGs/.PNGs
     RGB vs RGBA images
-    Renaming incorrectly rotates vertical images
-    Padding incorrectly rotates vertical images
 """
 
 import glob
@@ -97,7 +95,7 @@ def inform_user_after_operation(_input_image_dir : str, _output_image_dir : str,
 
 
 def choose_image_command(_input_image_paths : list[str], _output_image_dir : str, \
-    _command_name : str, _auxilliary_argument : Optional[str] = None) -> None:
+    _command_name : str, _auxilliary_arguments : [str] = None) -> None:
     """
     The "switch-case" for all possible image commands.
     Error-handling should have been performed before this function was called.
@@ -109,9 +107,9 @@ def choose_image_command(_input_image_paths : list[str], _output_image_dir : str
 
     #The images need to be squared off with padding
     elif _command_name == PADDING_COMMAND:
-        if _auxilliary_argument == "black":
+        if _auxilliary_arguments[0] == "black":
             padding_colour = BLACK_COLOUR
-        elif _auxilliary_argument == "white":
+        elif _auxilliary_arguments[0] == "white":
             padding_colour = WHITE_COLOUR
         else:
             padding_colour = DEFAULT_PAD_COLOUR
@@ -125,16 +123,27 @@ def choose_image_command(_input_image_paths : list[str], _output_image_dir : str
 
     #The images will be merged into one image, with a specified number of rows
     elif _command_name == MERGE_COMMAND:
-        if re.search(ONLY_INTEGERS_REGEX, _auxilliary_argument):
-            num_rows = int(_auxilliary_argument)
+        print(_auxilliary_arguments)
+        assert len(_auxilliary_arguments) >= 3
+
+        #Check to make the number of rows/columns supplied are an integer, and that
+        #   the user specified whether the grid is filled row-wise or column-wise
+        if re.search(ONLY_INTEGERS_REGEX, _auxilliary_arguments[0]) and \
+            Direction.string_to_value(_auxilliary_arguments[1]) and \
+            Direction.string_to_value(_auxilliary_arguments[2]):
+
+            #The user has constrained either the number of rows or columns
+            constrained = int(_auxilliary_arguments[0])
+
+            merge_images(_input_image_paths, _output_image_dir, constrained, \
+                Direction.string_to_value(_auxilliary_arguments[1]), \
+                Direction.string_to_value(_auxilliary_arguments[2]))
         else:
-            num_rows = DEFAULT_MERGE_ROW_COUNT
-        merge_images(_input_image_paths, _output_image_dir, num_rows)
+            print_help(Error.WRONG_MERGE_ARGUMENTS)
 
     else:
         print("Error: Incorrect command supplied")
         assert False #should never get here - commandName was already validated
-
 
 if __name__ == "__main__":
     #Ensure the user supplied a correct command word and number of arguments
@@ -183,10 +192,12 @@ if __name__ == "__main__":
             #   actual requested function
             #Send over the auxilliary argument if one is given
             if len(sys.argv) > 3:
-                choose_image_command(inputImagePaths, outputImageDir, sys.argv[2], sys.argv[3])
+                choose_image_command(inputImagePaths, outputImageDir, sys.argv[2], sys.argv[3:])
             else:
                 choose_image_command(inputImagePaths, outputImageDir, sys.argv[2])
 
             #Inform the user what happened to the images
             inform_user_after_operation(inputImageDir, outputImageDir, sys.argv[2], \
                 num_previous_files)
+
+            #TODO incorporate auxilliary arguments into inform_user functions?

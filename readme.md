@@ -1,10 +1,10 @@
 # Running Instructions
     Use one of the following commands (where <> brackets represent a placeholder,
         and [] brackets represent optional arguments)
-        1. python photo_tools.py rename <photo_directory_name>
-        2. python photo_tools.py pad <photo_directory_name> [black, white]
-        3. python photo_tools.py neg <photo_directory_name>
-        4. python photo_tools.py merge <photo_directory_name> [# rows]
+        1. `python photo_tools.py rename <photo_directory_name>`
+        2. `python photo_tools.py pad <photo_directory_name> [black, white]`
+        3. `python photo_tools.py neg <photo_directory_name>`
+        4. `python photo_tools.py merge <photo_directory_name> <# rows/columns> <direction constrained> <fill direction>`
 
 # Renaming:
 ## Problem:
@@ -40,6 +40,15 @@
 
 # Merging:
 ## Problem:
-    Sprite sheet maintenance.
+    Images which were worked on as individual files may need to be combined,
+      e.g., for photo collages or sprite sheets.
 ## Solution:
-    Flexible merging (based on the number of rows)
+    Flexible merging, allowing the user to decide whether to constrain the
+      number of rows or columns, and whether to fill with left --> right or
+      top --> down as the direction of priority.
+
+    e.g., the first tiling fills "column-wise", and the second fills "row-wise".
+            1 5 9               1 2 3 4 5
+            2 6 .               6 7 8 9 ...
+            3 7 .      vs.
+            4 8 .

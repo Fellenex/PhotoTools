@@ -10,6 +10,37 @@ class Error(enum.Enum):
     WRONG_NUM_ARGUMENTS = 2
     INVALID_COMMAND = 3
     TOO_MANY_FILES = 4
+    WRONG_MERGE_ARGUMENTS = 5
+
+class Direction(enum.Enum):
+    """Special values for different grid directions"""
+    ROW = 1
+    COLUMN = 2
+
+    @classmethod
+    def string_to_value(cls, _str):
+        """Maps the string command to the enum value"""
+        if _str == "row":
+            val = cls.ROW
+        elif _str == "column":
+            val = cls.COLUMN
+        else:
+            val = None
+
+        return val
+
+def direction_to_string(direction : Direction):
+    """Maps a Direction to its representative string format."""
+    if direction == Direction.ROW:
+        val = "row"
+    elif direction == Direction.COLUMN:
+        val = "column"
+    else:
+        val = None
+
+    return val
+
+
 
 def print_help(_error_code : Error, _extra_arg : Optional[str] = None) -> None:
     """
@@ -21,9 +52,11 @@ def print_help(_error_code : Error, _extra_arg : Optional[str] = None) -> None:
         print("f{_command_name} is not a valid command.")
     elif _error_code == Error.WRONG_NUM_ARGUMENTS:
         print("You have supplied the wrong number of arguments."
-            f"{_extra_arg} needs {MAP_COMMAND_TO_NUM_ARGS[_extra_arg]} arguments")
+            f"{_extra_arg} needs {MAP_COMMAND_TO_NUM_ARGS[_extra_arg]} arguments.")
     elif _error_code == Error.TOO_MANY_FILES:
-        print(f"There are too many files for this operation ({_extra_arg}/{MAX_FILES} files)")
+        print(f"There are too many files for this operation ({_extra_arg}/{MAX_FILES} files).")
+    elif _error_code == Error.WRONG_MERGE_ARGUMENTS:
+        print("You have supplied an incorrect set of arguments for the merge function.")
     else:
         print(f"Unknown error code: {_error_code}")
 
@@ -76,7 +109,7 @@ MAP_COMMAND_TO_NUM_ARGS = {
     RENAMING_COMMAND : 3,
     PADDING_COMMAND : 3,        #final 4th argument (pad colour) is optional
     NEGATIVE_COMMAND : 3,
-    MERGE_COMMAND : 3,          #final 4th argument (num rows) is optional
+    MERGE_COMMAND : 6,          #numRows/numCols, "rows"/"columns" "row"/"column"
 }
 
 #commands that a user can enter to execute part of the code from the command-line
