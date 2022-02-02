@@ -214,63 +214,6 @@ def generate_image_coordinates(direction : Direction, _num_images : int, \
     return coordinates
 
 
-"""
-def merge_images(_input_image_paths : list[str], _output_image_dir : str, _num_rows : int) -> None:
-
-    Takes a set of images and merges them into one image, organized into _num_rows rows.
-    Any leftover space will be filled with transparent background.
-        (e.g., fitting 8 images into 3 rows)
-
-    Saves the merge image in a new directory, defined by MERGE_SUFFIX
-
-    #Determine the size of the merged image
-    images_per_row = len(_input_image_paths)/_num_rows
-    canvas_x,canvas_y = Image.open(_input_image_paths[0]).size
-    canvas_y = canvas_y * _num_rows
-
-    if not floor(images_per_row) == images_per_row:
-        images_per_row = int(images_per_row)
-        #if we can't split the rows up evenly, then make the first rows have the extras
-        num_overfilled_rows_remaining = len(_input_image_paths) % _num_rows -1
-        col_counter = -1
-        canvas_x = canvas_x * (images_per_row + 1)
-    else:
-        #it'll be a nice, even image!
-        images_per_row = int(images_per_row)
-        num_overfilled_rows_remaining = 0
-        col_counter = 0
-        canvas_x = canvas_x * images_per_row
-
-    new_canvas = Image.new("RGBA", (canvas_x, canvas_y), WHITE_COLOUR_ALPHA)
-
-    #keep track of the position at which to paste
-    curr_x = 0
-    curr_y = 0
-    for image in _input_image_paths:
-        image_object = Image.open(image)
-
-        new_canvas.paste(image_object, (curr_x,curr_y))
-
-        col_counter += 1
-        if col_counter == images_per_row:
-            if num_overfilled_rows_remaining > 0:
-                #give the next row an extra image
-                col_counter = -1
-                num_overfilled_rows_remaining -= 1
-            else:
-                col_counter = 0
-
-            #Start the next row
-            curr_x = 0
-            curr_y += image_object.size[1]
-        else:
-            curr_x += image_object.size[0]
-
-    #defaults to PNG for transparency things
-    new_canvas.save(_output_image_dir + "(" + str(_num_rows) + "-merged)" + ".PNG")
-"""
-
-
 def get_alternative_flag(_image_path : str) -> str:
     """
     #Takes an image path name and returns either an empty string or a character,
